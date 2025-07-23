@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.log
+.env
+venv/
+*.sqlite3
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Flask Uploads
+Uploads/
+
+# Frontend builds
+.next/
+node_modules/
+dist/
+build/

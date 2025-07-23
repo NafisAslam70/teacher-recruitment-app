@@ -5,3 +5,14 @@ Werkzeug==3.0.4
 PyPDF2==3.0.1
 gunicorn==20.1.0
 flask-session==0.8.0
+
+requests==2.32.4
+beautifulsoup4==4.12.3
+pdfplumber==0.11.4
+pdf2image==1.17.0
+pytesseract==0.3.10
+spacy==3.7.5
+phonenumbers==8.13.30
+email-validator==2.2.0     # ✅ Not .post1 (invalid)
+numpy<2                    # ✅ Required by pandas
+pandas                     # ✅ Needed by pytesseract internals
