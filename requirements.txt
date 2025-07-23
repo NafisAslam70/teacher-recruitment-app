@@ -1,5 +1,3 @@
-
-
 Flask==3.0.3
 Werkzeug==3.0.4
 PyPDF2==3.0.1
@@ -12,8 +10,8 @@ pdfplumber==0.11.4
 pdf2image==1.17.0
 pytesseract==0.3.10
 spacy==3.7.5
+blis==0.7.11                # ✅ Prebuilt version to avoid build failure
 phonenumbers==8.13.30
-email-validator==2.2.0     # ✅ Not .post1 (invalid)
-numpy<2                    # ✅ Required by pandas
-pandas                     # ✅ Needed by pytesseract internals
-     
+email-validator==2.2.0      # ✅ Use only this — not .post1
+numpy<2                     # ✅ Needed by pandas, spacy, pytesseract
+pandas==2.2.2               # ✅ Explicit version for reproducibility
