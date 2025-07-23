@@ -1,11 +1,18 @@
-from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask import Flask, request, render_template, jsonify, send_from_directory, session, redirect, url_for
 import os
 import re
 from werkzeug.utils import secure_filename
 import PyPDF2
 from urllib.parse import quote
+from flask_session import Session
 
 app = Flask(__name__)
+
+# Configure session
+app.config['SECRET_KEY'] = 'your-secret-key'  # Replace with a secure key in production
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = os.path.join(os.getcwd(), 'flask_session')
+Session(app)
 
 # Configure upload directory
 UPLOAD_FOLDER = 'Uploads'
@@ -16,6 +23,12 @@ YOUR_WHATSAPP_NUMBER = '+601112079684'
 # Ensure upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+
+# Hardcoded credentials
+HARDCODED_CREDENTIALS = {
+    'username': 'admin',
+    'password': 'adminnn123'
+}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -30,13 +43,11 @@ def extract_info(text):
     # Extract name
     name_match = re.search(r'Name\s*[:\-]?\s*([A-Za-z\s]+)', text, re.IGNORECASE)
     if not name_match:
-        # Improved fallback: Look for two or more capitalized words, exclude common non-name terms
         name_match = re.search(r'^([A-Z][a-zA-Z]*\s+[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*)', text, re.MULTILINE)
         if name_match:
-            # Filter out non-name words like "boondbour", "boondTeacher"
             words = name_match.group(1).split()
             filtered_words = [word for word in words if not re.match(r'boond[A-Za-z]*', word, re.IGNORECASE)]
-            name = ' '.join(filtered_words[:3])  # Limit to 3 words to avoid picking up extra text
+            name = ' '.join(filtered_words[:3])
         else:
             name = 'Candidate'
     else:
@@ -67,8 +78,27 @@ def generate_message(name):
         f"— Superintendent, MEED Public School"
     )
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if (username == HARDCODED_CREDENTIALS['username'] and 
+            password == HARDCODED_CREDENTIALS['password']):
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        else:
+            error = 'Invalid username or password'
+            return render_template('login.html', error=error)
+    
+    return render_template('login.html', error='')
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
     message = ''
     error = ''
     pdf_path = ''
@@ -143,12 +173,21 @@ def index():
     return render_template('index.html', error=error, message=message, pdf_path=pdf_path, 
                          whatsapp_number=whatsapp_number, contact_link=contact_link, source=source)
 
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
 @app.route('/Uploads/<filename>')
 def serve_uploaded_file(filename):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/cleanup', methods=['GET'])
 def cleanup():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     file_path = request.args.get('file')
     if file_path:
         full_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(file_path))
