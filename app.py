@@ -105,17 +105,19 @@ def extract_info(file_path):
     ]
     for pattern in email_patterns:
         email_match = re.search(pattern, text, re.IGNORECASE)
-        if email_match:
-            try:
-                # If the regex has a capturing group
-                email_candidate = email_match.group(1) if email_match.lastindex else email_match.group(0)
-                email_candidate = email_candidate.strip()
-                validate_email(email_candidate, check_deliverability=False)
-                email = email_candidate
-                break
-            except (EmailNotValidError, IndexError):
-                continue
+        if not email_match:
+            continue  # Skip to next pattern if no match
 
+        try:
+            # Use group(1) if regex has a capture group, else group(0)
+            email_candidate = email_match.group(1) if email_match.lastindex else email_match.group(0)
+            email_candidate = email_candidate.strip()
+            validate_email(email_candidate, check_deliverability=False)
+            email = email_candidate
+            break
+        except (EmailNotValidError, IndexError):
+            continue
+    
 
     # Step 6: Phone extraction with validation
     phone = ''
