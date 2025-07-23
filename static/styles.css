@@ -1,0 +1,8 @@
+/* Add custom styles here if needed */
+body {
+    font-family: Arial, sans-serif;
+}
+
+iframe {
+    min-height: 400px; /* Ensure iframe has a reasonable height */
+}
